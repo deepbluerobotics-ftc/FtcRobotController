@@ -6,24 +6,18 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class BasicOpMode_Linear extends LinearOpMode {
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    HardwareHandler hardwareHandler;
 
     @Override
     public void runOpMode() throws InterruptedException {
-
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-
-        leftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+        hardwareHandler = new HardwareHandler(hardwareMap);
 
         telemetry.addData("Status", "Initialized");
 
-        leftDrive.setPower(1.0);
-        rightDrive.setPower(1.0);
+        hardwareHandler.setDrivePower(1, 1);
         Thread.sleep(1000);
-        leftDrive.setPower(0.0);
-        rightDrive.setPower(0.0);
+        hardwareHandler.setDrivePower(0, 0);
+
+        hardwareHandler.resetPower();
     }
 }
