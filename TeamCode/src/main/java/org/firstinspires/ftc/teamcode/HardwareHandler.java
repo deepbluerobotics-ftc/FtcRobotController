@@ -4,18 +4,26 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class HardwareHandler {
+    public final int WHEEL_RADIUS = 2; //inches
+    public final double WHEEL_CIRCUMFERENCE = 2 * WHEEL_RADIUS * Math.PI; //inches
+    public final int ENCODER_COUNTS_PER_REVOLUTION = 1440;
+    public final int LINEAR_SLIDE_MAXIMUM_POSITION = 5760;
+
     public DcMotor leftDrive;
     public DcMotor rightDrive;
     public DcMotor linearSlide;
     public Servo claw;
 
     public HardwareMap hardwareMap;
+    public ElapsedTime runtime;
 
     public HardwareHandler(HardwareMap hm)
     {
         this.hardwareMap = hm;
+        this.runtime = new ElapsedTime();
 
         this.leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
         this.rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
@@ -23,21 +31,18 @@ public class HardwareHandler {
         this.claw = hardwareMap.get(Servo.class, "claw");
 
         this.resetPower();
-        this.setZeroPowerBehavior();
-        this.setMotorDirection();
-        this.runUsingEncoder();
-    }
 
-    public void setMotorDirection(){
-        this.leftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-        this.rightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        this.linearSlide.setDirection(DcMotorSimple.Direction.FORWARD);
-    }
-
-    public void setZeroPowerBehavior() {
         this.leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.linearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        this.leftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.rightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+        this.linearSlide.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        this.leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.linearSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void resetPower() {
@@ -46,23 +51,53 @@ public class HardwareHandler {
         this.linearSlide.setPower(0);
     }
 
-    public void runUsingEncoder() {
-        this.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.linearSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-
     public void setDrivePower(double left, double right) {
         this.leftDrive.setPower(left);
         this.rightDrive.setPower(right);
     }
 
-    public void closeClaw(boolean closed) {
-        if (closed) {
-            claw.setPosition(1);
+    public void driveToPosition(double inches) {
+        int targetPosition = (int) ((inches / WHEEL_CIRCUMFERENCE) * ENCODER_COUNTS_PER_REVOLUTION);
+        this.leftDrive.setPower(0);
+        this.rightDrive.setPower(0);
+        this.leftDrive.setTargetPosition(targetPosition);
+        this.rightDrive.setTargetPosition(targetPosition);
+        this.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.leftDrive.setPower(1);
+        this.rightDrive.setPower(1);
+        while (leftDrive.isBusy() || rightDrive.isBusy()) {}
+        this.leftDrive.setPower(0);
+        this.rightDrive.setPower(0);
+        this.leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public void setSlidePower(double power) {
+        if ((power > 0 && this.linearSlide.getCurrentPosition() >= LINEAR_SLIDE_MAXIMUM_POSITION) || (power < 0 && this.linearSlide.getCurrentPosition() <= 0)) {
+            this.linearSlide.setPower(0);
         }
         else {
-            claw.setPosition(0);
+            this.linearSlide.setPower(power);
+        }
+    }
+
+    public void resetSlide() {
+        this.linearSlide.setPower(0);
+        this.linearSlide.setTargetPosition(0);
+        this.linearSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.linearSlide.setPower(1);
+        while (this.linearSlide.isBusy()) {}
+        this.linearSlide.setPower(0);
+        this.linearSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void closeClaw(boolean closed) {
+        if (closed) {
+            this.claw.setPosition(1);
+        }
+        else {
+            this.claw.setPosition(0);
         }
     }
 }

@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-
 
 @TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
 public class BasicOpMode_Iterative extends OpMode
@@ -27,6 +27,11 @@ public class BasicOpMode_Iterative extends OpMode
     }
 
     @Override
+    public void start() {
+        hardwareHandler.runtime.reset();
+    }
+
+    @Override
     public void loop() {
         drive = -gamepad1.left_stick_y;
         turn  =  gamepad1.right_stick_x;
@@ -39,13 +44,14 @@ public class BasicOpMode_Iterative extends OpMode
         }
 
         hardwareHandler.setDrivePower(leftPower, rightPower);
-        hardwareHandler.linearSlide.setPower(slidePower);
+        hardwareHandler.setSlidePower(slidePower);
         hardwareHandler.closeClaw(clawClosed);
     }
 
     @Override
     public void stop() {
         hardwareHandler.resetPower();
+        hardwareHandler.resetSlide();
         hardwareHandler.closeClaw(false);
     }
 }
