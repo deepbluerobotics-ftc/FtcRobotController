@@ -16,6 +16,8 @@ public class BasicOpMode_Iterative extends OpMode
     double rightPower;
     double drive;
     double turn;
+    double slidePower;
+    boolean clawClosed;
 
     @Override
     public void init() {
@@ -28,15 +30,22 @@ public class BasicOpMode_Iterative extends OpMode
     public void loop() {
         drive = -gamepad1.left_stick_y;
         turn  =  gamepad1.right_stick_x;
-
+        slidePower = gamepad1.right_trigger - gamepad1.left_trigger;
         leftPower  = Range.clip(drive + turn, -1.0, 1.0) ;
         rightPower = Range.clip(drive - turn, -1.0, 1.0) ;
 
+        if (gamepad1.a) {
+            clawClosed = !clawClosed;
+        }
+
         hardwareHandler.setDrivePower(leftPower, rightPower);
+        hardwareHandler.linearSlide.setPower(slidePower);
+        hardwareHandler.closeClaw(clawClosed);
     }
 
     @Override
     public void stop() {
         hardwareHandler.resetPower();
+        hardwareHandler.closeClaw(false);
     }
 }
