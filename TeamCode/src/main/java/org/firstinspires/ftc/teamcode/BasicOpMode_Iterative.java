@@ -39,8 +39,11 @@ public class BasicOpMode_Iterative extends OpMode
         leftPower  = Range.clip(drive + turn, -1.0, 1.0) ;
         rightPower = Range.clip(drive - turn, -1.0, 1.0) ;
 
-        if (gamepad1.a) {
-            clawClosed = !clawClosed;
+        if (gamepad1.a && !gamepad1.b) {
+            clawClosed = true;
+        }
+        else if (!gamepad1.a && gamepad1.b) {
+            clawClosed = false;
         }
 
         hardwareHandler.setDrivePower(leftPower, rightPower);
