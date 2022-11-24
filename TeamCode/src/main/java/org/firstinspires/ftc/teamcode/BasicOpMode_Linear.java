@@ -19,7 +19,9 @@ public class BasicOpMode_Linear extends LinearOpMode {
         waitForStart();
         hardwareHandler.runtime.reset();
 
-        hardwareHandler.driveToPosition(12);
+        hardwareHandler.driveToPosition(12, 12);
+        hardwareHandler.rotateTo(0.25);
+        hardwareHandler.driveToPosition(12, 12);
 
         hardwareHandler.resetPower();
     }
