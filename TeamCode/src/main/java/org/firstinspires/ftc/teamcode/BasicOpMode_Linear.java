@@ -8,7 +8,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
     HardwareHandler hardwareHandler;
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
         hardwareHandler = new HardwareHandler(hardwareMap);
 
         telemetry.addData("Status", "Initialized");
