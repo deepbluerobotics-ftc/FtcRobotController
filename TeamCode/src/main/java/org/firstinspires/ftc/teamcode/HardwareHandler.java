@@ -13,7 +13,7 @@ public class HardwareHandler {
     public final double ROBOT_TURN_CIRCUMFERENCE = 2 * ROBOT_TURN_RADIUS * Math.PI; //inches
     public final int ENCODER_COUNTS_PER_REVOLUTION = 1440;
     public final int LINEAR_SLIDE_MAXIMUM_POSITION = 5760;
-    public final int ACCELERATION_ENCODER_COUNT_MARGIN = 1440;
+    final double ACCELERATION_STEP = 0.02;
 
     public DcMotor leftDrive;
     public DcMotor rightDrive;
@@ -60,54 +60,25 @@ public class HardwareHandler {
     }
 
     public void driveToPosition(double leftInches, double rightInches) {
-        int leftEndAcceleration;
-        int leftStartDeceleration;
-        int rightEndAcceleration;
-        int rightStartDeceleration;
+        double drivePower = 0;
         int leftTargetPosition = (int) ((leftInches / WHEEL_CIRCUMFERENCE) * ENCODER_COUNTS_PER_REVOLUTION);
         int rightTargetPosition = (int) ((rightInches / WHEEL_CIRCUMFERENCE) * ENCODER_COUNTS_PER_REVOLUTION);
-        if (Math.abs(leftTargetPosition) < ACCELERATION_ENCODER_COUNT_MARGIN * 2) {
-            leftEndAcceleration = leftTargetPosition / 2;
-            leftStartDeceleration = leftTargetPosition / 2;
-        }
-        else {
-            leftEndAcceleration = ACCELERATION_ENCODER_COUNT_MARGIN;
-            leftStartDeceleration = leftTargetPosition - ACCELERATION_ENCODER_COUNT_MARGIN;
-        }
-        if (Math.abs(rightTargetPosition) < ACCELERATION_ENCODER_COUNT_MARGIN * 2) {
-            rightEndAcceleration = rightTargetPosition / 2;
-            rightStartDeceleration = rightTargetPosition / 2;
-        }
-        else {
-            rightEndAcceleration = ACCELERATION_ENCODER_COUNT_MARGIN;
-            rightStartDeceleration = rightTargetPosition - ACCELERATION_ENCODER_COUNT_MARGIN;
-        }
         this.setDrivePower(0, 0);
+        this.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.leftDrive.setTargetPosition(leftTargetPosition);
         this.rightDrive.setTargetPosition(rightTargetPosition);
         this.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        while (leftDrive.isBusy() || rightDrive.isBusy()) {
-            if (leftDrive.getCurrentPosition() < leftEndAcceleration) {
-                leftDrive.setPower((double) leftDrive.getCurrentPosition() / leftEndAcceleration + 0.1);
-            }
-            else if (leftDrive.getCurrentPosition() > leftStartDeceleration) {
-                leftDrive.setPower((double) (leftTargetPosition - leftDrive.getCurrentPosition()) / leftStartDeceleration + 0.1);
-            }
-            else {
-                leftDrive.setPower(1);
-            }
-            if (rightDrive.getCurrentPosition() < rightEndAcceleration) {
-                rightDrive.setPower((double) rightDrive.getCurrentPosition() / rightEndAcceleration + 0.1);
-            }
-            else if (rightDrive.getCurrentPosition() > rightStartDeceleration) {
-                rightDrive.setPower((double) (rightTargetPosition - rightDrive.getCurrentPosition()) / rightStartDeceleration + 0.1);
-            }
-            else {
-                rightDrive.setPower(1);
-            }
-        }
         this.setDrivePower(0, 0);
+        do {
+            drivePower += ACCELERATION_STEP;
+            this.setDrivePower(drivePower, drivePower);
+        }
+        while ((leftDrive.isBusy() || rightDrive.isBusy()) && drivePower < 1);
+        this.setDrivePower(0, 0);
+        this.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }

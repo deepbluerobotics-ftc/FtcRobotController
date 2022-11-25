@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
 public class BasicOpMode_Iterative extends OpMode
 {
-    final double ACCELERATION_STEP = 0.1;
+    final double ACCELERATION_STEP = 0.02;
 
     HardwareHandler hardwareHandler;
 
