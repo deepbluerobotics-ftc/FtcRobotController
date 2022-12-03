@@ -7,12 +7,9 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
 public class BasicOpMode_Iterative extends OpMode
 {
-    final double ACCELERATION_STEP = 0.02;
 
     HardwareHandler hardwareHandler;
 
-    double previousLeftPower;
-    double previousRightPower;
     double leftPower;
     double rightPower;
     double drive;
@@ -38,30 +35,8 @@ public class BasicOpMode_Iterative extends OpMode
         turn  =  gamepad1.right_stick_x;
         slidePower = gamepad1.right_trigger - gamepad1.left_trigger;
 
-        previousLeftPower = leftPower;
-        previousRightPower = rightPower;
         leftPower  = Range.clip(drive + turn, -1.0, 1.0) ;
         rightPower = Range.clip(drive - turn, -1.0, 1.0) ;
-        if (leftPower - previousLeftPower > 0) {
-            if (leftPower - previousLeftPower > ACCELERATION_STEP) {
-                leftPower = previousLeftPower + ACCELERATION_STEP;
-            }
-        }
-        if (leftPower - previousLeftPower < 0) {
-            if (leftPower - previousLeftPower < -ACCELERATION_STEP) {
-                leftPower = previousLeftPower - ACCELERATION_STEP;
-            }
-        }
-        if (rightPower - previousRightPower > 0) {
-            if (rightPower - previousRightPower > ACCELERATION_STEP) {
-                rightPower = previousRightPower + ACCELERATION_STEP;
-            }
-        }
-        if (rightPower - previousRightPower < 0) {
-            if (rightPower - previousRightPower < -ACCELERATION_STEP) {
-                rightPower = previousRightPower - ACCELERATION_STEP;
-            }
-        }
 
         if (gamepad1.a && !gamepad1.b) {
             clawClosed = true;
@@ -78,7 +53,6 @@ public class BasicOpMode_Iterative extends OpMode
     @Override
     public void stop() {
         hardwareHandler.resetPower();
-        hardwareHandler.resetSlide();
         hardwareHandler.closeClaw(false);
     }
 }
