@@ -64,7 +64,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Drive", group="Linear OpMode")
+@TeleOp(name="Basic: TeleOp", group="Linear OpMode")
 
 public class BasicOmniOpMode_Iterative extends LinearOpMode {
 
@@ -74,7 +74,17 @@ public class BasicOmniOpMode_Iterative extends LinearOpMode {
     private DcMotor LBDrive = null;
     private DcMotor RFDrive = null;
     private DcMotor RBDrive = null;
+    private DcMotor FlyWheelL = null;
+    private DcMotor FlyWheelR = null;
+    private DcMotor Intake = null;
+    private CRServo AdjustForwL = null;
+    private CRServo AdjustBackL = null;
+    private CRServo AdjustForwR = null;
+    private CRServo AdjustBackR = null;
 
+    private double IntakePower = 0;
+    private double MidtakePower = 0;
+    private double FlyWheelPower = 0;
 
     @Override
     public void runOpMode() {
@@ -85,6 +95,16 @@ public class BasicOmniOpMode_Iterative extends LinearOpMode {
         BLDrive  = hardwareMap.get(DcMotor.class, "back_left_drive");
         FRDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         BRDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+
+        FlyWheelL = hardwareMap.get(DcMotor.class, "fly_wheel_left");
+        FlyWheelR = hardwareMap.get(DcMotor.class, "fly_wheel_right");
+
+        Intake = hardwareMap.get(DcMotor.class, "intake");
+
+        AdjustUpL = hardwareMap.get(CRServo.class, "adjustment_upward_left");
+        AdjustUpR = hardwareMap.get(CRServo.class, "adjustment_upward_right");
+        AdjustForwL = hardwareMap.get(CRServo.class, "adjustment_forward_left");
+        AdjustForwR = hardwareMap.get(CRServo.class, "adjustment_forward_right");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -101,6 +121,15 @@ public class BasicOmniOpMode_Iterative extends LinearOpMode {
         FRDrive.setDirection(DcMotor.Direction.FORWARD);
         BRDrive.setDirection(DcMotor.Direction.FORWARD);
 
+        FlyWheelL.setDirection(DcMotor.Direction.REVERSE);
+        FlyWheelR.setDirection(DcMotor.Direction.FORWARD);
+
+        Intake.setDirection(DcMotor.Direction.FORWARD);
+
+        AdjustBackL.setDirection(CRServo.Direction.FORWARD);
+        AdjustForwL.setDirection(CRServo.Direction.FORWARD);
+        AdjustBackR.setDirection(CRServo.Direction.REVERSE);
+        AdjustBackL.setDirection(CRServo.Direction.REVERSE);
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -110,6 +139,24 @@ public class BasicOmniOpMode_Iterative extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+
+            if (gamepad1.right_trigger > 0.3){
+                FlyWheelPower = 1;
+            } else{
+                FlyWheelPower = 0;
+            }
+            
+            if (gamepad1.left_trigger > 0.3){
+                IntakePower = .5;
+            } else {
+                IntakePower = 0;
+            }
+            if (gamepad1.right_bumper){
+                MidtakePower = 1;
+            } else {
+                MidtakePower = 0;
+            }
+
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
@@ -158,11 +205,25 @@ public class BasicOmniOpMode_Iterative extends LinearOpMode {
             LRDrive.setPower(rightFrontPower);
             LBDrive.setPower(leftBackPower);
             RBDrive.setPower(rightBackPower);
+            // send power to flywheels
+            FlyWheelL.setPower(FlyWheelPower);
+            FlyWheelR.setPower(-FlyWheelPower);
+            //and intake
+            Intake.setPower(IntakePower);
+            //and midtake
+            AdjustBackL.setPower(MidtakePower);
+            AdjustForwL.setPower(MidtakePower);
+            AdjustBackR.setPower(-MidtakePower);
+            AdjustForwR.setPower(-MidtakePower);
+
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Front left/Right", leftFrontPower, rightFrontPower);
+            telemetry.addData("Back  left/Right", leftBackPower, rightBackPower);
+            telemetry.addData("Intake:", IntakePower);
+            telemetry.addData("Midtake:", MidtakePower);
+            telemetry.addData("FlyWheel:", FlyWheelPower);
 
             telemetry.update();
         }
